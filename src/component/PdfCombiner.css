@@ -82,3 +82,38 @@ input[type='file'] {
   cursor: pointer;
   opacity: 0.9;
 }
+.dropzone {
+  position: relative;
+  color: white;
+  height: 200px;
+  width: 400px;
+  background: linear-gradient(
+    200.96deg,
+    #426ad0 -29.09%,
+    #647cd4 51.77%,
+    #3d81c1 109.35%
+  );
+  border-radius: 12px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.activeDropzone {
+  position: relative;
+  color: white;
+  height: 200px;
+  width: 400px;
+  background: linear-gradient(
+    200.96deg,
+    #426ad0 -29.09%,
+    #647cd4 51.77%,
+    #3d81c1 109.35%
+  );
+  border: 1px solid white;
+  border-style: dashed;
+  border-radius: 12px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}

@@ -1,35 +1,46 @@
-import { ChangeEvent, useState } from 'react';
+/* eslint-disable jsx-a11y/no-static-element-interactions, jsx-a11y/click-events-have-key-events */
+/* eslint-disable react-hooks/exhaustive-deps, consistent-return */
+import { ChangeEvent, DragEvent, useRef, useState } from 'react';
 import './PdfCombiner.css';
 
 export default function PdfCombiner() {
-  const [envPath, setEnvPath] = useState(
-    localStorage.getItem('env_path') || '',
-  );
+  const [pdf, setPdf] = useState<File[]>([]);
+  const inputRef = useRef<HTMLInputElement | null>(null);
 
-  const handleEnvPath = (e: ChangeEvent<HTMLInputElement>) => {
-    setEnvPath(e.target.value);
-    return localStorage.setItem('env_path', e.target.value);
+  const handleDrop = (
+    event: DragEvent<HTMLDivElement> | ChangeEvent<HTMLInputElement>,
+  ) => {
+    event.preventDefault();
+    const { files } =
+      'dataTransfer' in event
+        ? event.dataTransfer
+        : (event.target as HTMLInputElement);
+    console.log('files', files);
+    const nextPdf = [];
+    for (let i = 0; i < files!.length; i += 1) {
+      nextPdf.push(files![i]);
+    }
+    setPdf(nextPdf);
   };
-  const handleEnvFile = (e: ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files ? e.target.files[0] : null;
-    setEnvPath(file?.path || '');
-    return localStorage.setItem('env_path', file?.path || '');
+
+  const handleDragOver = (event: DragEvent<HTMLDivElement>) => {
+    event.preventDefault(); // 드롭 가능하도록 허용
   };
 
   return (
     <div>
-      <h4>선택한 ENV 파일: {envPath}</h4>
+      <h2>🗂️ PDF COMBINER 🗂️</h2>
+      <h4>선택한 pdf 파일: {pdf.map((v) => v.name).join(', ')}</h4>
       <div className="path">
-        <label htmlFor="fileInput" className="custom-file-label">
-          <input id="fileInput" type="file" onChange={handleEnvFile} />
-          Select Your Env File
-        </label>
-        <input
-          id="pathInput"
-          onChange={handleEnvPath}
-          value={envPath}
-          placeholder="path를 입력하세요"
-        />
+        <div
+          onDrop={handleDrop}
+          onDragOver={handleDragOver}
+          className="dropzone"
+          onClick={() => inputRef.current?.click()}
+        >
+          <input type="file" multiple ref={inputRef} onChange={handleDrop} />
+          <p>Drop the pdf files here ...</p>
+        </div>
       </div>
     </div>
   );
