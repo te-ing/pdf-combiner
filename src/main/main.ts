@@ -1,3 +1,5 @@
+/* eslint-disable no-restricted-syntax */
+/* eslint-disable no-await-in-loop */
 /* eslint global-require: off, no-console: off, promise/always-return: off */
 
 /**
@@ -13,6 +15,7 @@ import { app, BrowserWindow, shell, ipcMain } from 'electron';
 import { autoUpdater } from 'electron-updater';
 import log from 'electron-log';
 import fs from 'fs';
+import * as PDF from 'pdf-lib';
 import MenuBuilder from './menu';
 import { resolveHtmlPath } from './util';
 
@@ -32,13 +35,38 @@ ipcMain.on('ipc-example', async (event, arg) => {
   event.reply('ipc-example', msgTemplate('pong'));
 });
 
-ipcMain.on('read-file', async (event, arg) => {
-  console.log("ipcMain.on('read-file')", arg);
-  const target = fs
-    // .readFileSync(path.join(`/Users/te-ing/Desktop/test.env`))
-    .readFileSync(path.join(arg))
-    .toString();
-  event.reply('read-file', target);
+ipcMain.on('combine-pdf', async (event, pdfFiles: string[]) => {
+  async function mergePDFs(arg: string[]) {
+    // 새 PDF 문서 생성
+    const mergedPdfDoc = await PDF.PDFDocument.create();
+
+    for (const filePath of arg) {
+      // PDF 파일 읽기
+      const pdfBytes = fs.readFileSync(filePath);
+      const pdfDoc = await PDF.PDFDocument.load(pdfBytes);
+
+      // 모든 페이지 가져오기
+      const [pdfPages] = await mergedPdfDoc.copyPages(
+        pdfDoc,
+        pdfDoc.getPageIndices(),
+      );
+      mergedPdfDoc.addPage(pdfPages);
+    }
+
+    // 합쳐진 PDF 파일 저장
+    const mergedPdfBytes = await mergedPdfDoc.save();
+    fs.writeFileSync(arg[0].replace('.pdf', '_combined.pdf'), mergedPdfBytes);
+  }
+
+  // 합치기 함수 호출
+  mergePDFs(pdfFiles)
+    .then(() => {
+      event.reply('combine-pdf', 'PDF 합치기 성공! 🎉');
+    })
+    .catch((err) => {
+      event.reply('combine-pdf', 'PDF 합치기 실패! 😭');
+      console.error(err);
+    });
 });
 
 ipcMain.on('write-file', async (event, arg) => {

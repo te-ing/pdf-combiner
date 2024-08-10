@@ -15,7 +15,7 @@ export default function PdfCombiner() {
       'dataTransfer' in event
         ? event.dataTransfer
         : (event.target as HTMLInputElement);
-    console.log('files', files);
+
     const nextPdf = [];
     for (let i = 0; i < files!.length; i += 1) {
       nextPdf.push(files![i]);
@@ -25,6 +25,12 @@ export default function PdfCombiner() {
 
   const handleDragOver = (event: DragEvent<HTMLDivElement>) => {
     event.preventDefault(); // 드롭 가능하도록 허용
+  };
+
+  const combinePdf = () => {
+    const pdfPath = pdf.map((v) => v.path);
+
+    window.electron.ipcRenderer.sendMessage('combine-pdf', pdfPath);
   };
 
   return (
@@ -42,6 +48,9 @@ export default function PdfCombiner() {
           <p>Drop the pdf files here ...</p>
         </div>
       </div>
+      <button onClick={combinePdf} type="button">
+        합치기
+      </button>
     </div>
   );
 }
