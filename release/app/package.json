@@ -1,12 +1,12 @@
 {
-  "name": "electron-react-boilerplate",
+  "name": "pdf-combiner",
   "version": "1.0.0",
   "description": "combine pdf files",
   "license": "MIT",
   "author": {
     "name": "te-ing",
     "email": "hi2177@naver.com",
-    "url": "https://electron-react-boilerplate.js.org"
+    "url": "https://github.com/te-ing"
   },
   "main": "./dist/main/main.js",
   "scripts": {
