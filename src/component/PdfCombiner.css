@@ -118,9 +118,25 @@ input[type='file'] {
   align-items: center;
 }
 
-.checkbox-container {
+.option-container {
   display: flex;
   width: 100%;
-  justify-content: flex-end;
+  justify-content: space-between;
   align-items: center;
+  gap: 10px;
+
+  > label {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+  }
+
+  input[type='text'] {
+    min-width: 200px;
+    outline: none;
+    border: none;
+    border-radius: 4px;
+    padding: 4px;
+    border-bottom: 1px solid lightgray;
+  }
 }

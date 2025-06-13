@@ -35,39 +35,49 @@ ipcMain.on('ipc-example', async (event, arg) => {
   event.reply('ipc-example', msgTemplate('pong'));
 });
 
-ipcMain.on('combine-pdf', async (event, pdfFiles: string[]) => {
-  async function mergePDFs(arg: string[]) {
-    // 새 PDF 문서 생성
-    const mergedPdfDoc = await PDF.PDFDocument.create();
+ipcMain.on(
+  'combine-pdf',
+  async (event, arg: { pdfPath: string[]; filename: string }) => {
+    async function mergePDFs(pdfPath: string[], outputFilename: string) {
+      // 새 PDF 문서 생성
+      const mergedPdfDoc = await PDF.PDFDocument.create();
 
-    for (const filePath of arg) {
-      // PDF 파일 읽기
-      const pdfBytes = fs.readFileSync(filePath);
-      const pdfDoc = await PDF.PDFDocument.load(pdfBytes);
+      for (const filePath of pdfPath) {
+        // PDF 파일 읽기
+        const pdfBytes = fs.readFileSync(filePath);
+        const pdfDoc = await PDF.PDFDocument.load(pdfBytes);
 
-      // 모든 페이지 가져오기
-      const [pdfPages] = await mergedPdfDoc.copyPages(
-        pdfDoc,
-        pdfDoc.getPageIndices(),
-      );
-      mergedPdfDoc.addPage(pdfPages);
+        // 모든 페이지 가져오기
+        const [pdfPages] = await mergedPdfDoc.copyPages(
+          pdfDoc,
+          pdfDoc.getPageIndices(),
+        );
+        mergedPdfDoc.addPage(pdfPages);
+      }
+
+      // 합쳐진 PDF 파일 저장
+      const mergedPdfBytes = await mergedPdfDoc.save();
+      const outputPath = outputFilename
+        ? pdfPath[0]
+            .split('/')
+            .slice(0, -1)
+            .concat(`${outputFilename}.pdf`)
+            .join('/')
+        : pdfPath[0];
+      fs.writeFileSync(outputPath, mergedPdfBytes);
     }
 
-    // 합쳐진 PDF 파일 저장
-    const mergedPdfBytes = await mergedPdfDoc.save();
-    fs.writeFileSync(arg[0].replace('.pdf', '_combined.pdf'), mergedPdfBytes);
-  }
-
-  // 합치기 함수 호출
-  mergePDFs(pdfFiles)
-    .then(() => {
-      event.reply('combine-pdf', 'PDF 합치기 성공! 🎉');
-    })
-    .catch((err) => {
-      event.reply('combine-pdf', 'PDF 합치기 실패! 😭');
-      console.error(err);
-    });
-});
+    // 합치기 함수 호출
+    mergePDFs(arg.pdfPath, arg.filename)
+      .then(() => {
+        event.reply('combine-pdf', 'PDF 합치기 성공! 🎉');
+      })
+      .catch((err) => {
+        event.reply('combine-pdf', 'PDF 합치기 실패! 😭');
+        console.error(err);
+      });
+  },
+);
 
 ipcMain.on('write-file', async (event, arg) => {
   console.log("ipcMain.on('read-file')", arg);
