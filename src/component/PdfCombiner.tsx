@@ -5,6 +5,7 @@ import './PdfCombiner.css';
 
 export default function PdfCombiner() {
   const [pdf, setPdf] = useState<File[]>([]);
+  const [isSort, setIsSort] = useState<boolean>(true);
   const inputRef = useRef<HTMLInputElement | null>(null);
 
   const handleDrop = (
@@ -20,6 +21,7 @@ export default function PdfCombiner() {
     for (let i = 0; i < files!.length; i += 1) {
       nextPdf.push(files![i]);
     }
+    if (isSort) nextPdf.sort((a, b) => a.name.localeCompare(b.name));
     setPdf(nextPdf);
   };
 
@@ -37,6 +39,17 @@ export default function PdfCombiner() {
     <div>
       <h2>🗂️ PDF COMBINER 🗂️</h2>
       <h4>선택한 pdf 파일: {pdf.map((v) => v.name).join(', ')}</h4>
+      <div className="checkbox-container">
+        <label htmlFor="sort">
+          이름순 정렬
+          <input
+            id="sort"
+            type="checkbox"
+            checked={isSort}
+            onChange={() => setIsSort(!isSort)}
+          />
+        </label>
+      </div>
       <div className="path">
         <div
           onDrop={handleDrop}
