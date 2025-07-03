@@ -80,7 +80,13 @@ export default function PdfCombiner() {
           className="dropzone"
           onClick={() => inputRef.current?.click()}
         >
-          <input type="file" multiple ref={inputRef} onChange={handleDrop} />
+          <input
+            type="file"
+            accept=".pdf"
+            multiple
+            ref={inputRef}
+            onChange={handleDrop}
+          />
           <p>Drop the pdf files here ...</p>
         </div>
       </div>
