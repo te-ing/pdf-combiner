@@ -13,11 +13,6 @@ window.electron.ipcRenderer.once('ipc-example', (arg) => {
 window.electron.ipcRenderer.sendMessage('ipc-example', ['ping']);
 
 // calling IPC exposed from preload script
-window.electron.ipcRenderer.on('combine-pdf', async (arg) => {
-  alert(arg);
-  return arg;
-});
-
 window.electron.ipcRenderer.on('write-file', async (arg) => {
   console.log(arg);
   return arg;

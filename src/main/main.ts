@@ -39,45 +39,91 @@ ipcMain.on(
   'combine-pdf',
   async (event, arg: { pdfPath: string[]; filename: string }) => {
     async function mergePDFs(pdfPath: string[], outputFilename: string) {
-      // 새 PDF 문서 생성
-      const mergedPdfDoc = await PDF.PDFDocument.create();
+      try {
+        // 새 PDF 문서 생성
+        const mergedPdfDoc = await PDF.PDFDocument.create();
 
-      for (const filePath of pdfPath) {
-        // PDF 파일 읽기
-        const pdfBytes = fs.readFileSync(filePath);
-        const pdfDoc = await PDF.PDFDocument.load(pdfBytes);
+        for (const filePath of pdfPath) {
+          // PDF 파일 읽기
+          const pdfBytes = fs.readFileSync(filePath);
+          const pdfDoc = await PDF.PDFDocument.load(pdfBytes);
 
-        // 모든 페이지 가져오기
-        const [pdfPages] = await mergedPdfDoc.copyPages(
-          pdfDoc,
-          pdfDoc.getPageIndices(),
-        );
-        mergedPdfDoc.addPage(pdfPages);
+          // 모든 페이지 가져오기
+          const pageIndices = pdfDoc.getPageIndices();
+          const pdfPages = await mergedPdfDoc.copyPages(pdfDoc, pageIndices);
+
+          // 각 페이지를 추가
+          pdfPages.forEach((page) => {
+            mergedPdfDoc.addPage(page);
+          });
+        }
+
+        // 합쳐진 PDF 파일 저장
+        const mergedPdfBytes = await mergedPdfDoc.save();
+
+        // 출력 경로 설정
+        let outputPath;
+        if (outputFilename) {
+          const dirPath = path.dirname(pdfPath[0]);
+          outputPath = path.join(dirPath, `${outputFilename}.pdf`);
+        } else {
+          const dirPath = path.dirname(pdfPath[0]);
+          const baseName = path.basename(pdfPath[0], '.pdf');
+          outputPath = path.join(dirPath, `${baseName}_combined.pdf`);
+        }
+
+        console.log('Saving to:', outputPath);
+        fs.writeFileSync(outputPath, mergedPdfBytes);
+        console.log('File saved successfully');
+
+        return outputPath;
+      } catch (error) {
+        console.error('Error in mergePDFs:', error);
+        throw error;
       }
-
-      // 합쳐진 PDF 파일 저장
-      const mergedPdfBytes = await mergedPdfDoc.save();
-      const outputPath = outputFilename
-        ? pdfPath[0]
-            .split('/')
-            .slice(0, -1)
-            .concat(`${outputFilename}.pdf`)
-            .join('/')
-        : pdfPath[0];
-      fs.writeFileSync(outputPath, mergedPdfBytes);
     }
 
     // 합치기 함수 호출
     mergePDFs(arg.pdfPath, arg.filename)
-      .then(() => {
-        event.reply('combine-pdf', 'PDF 합치기 성공! 🎉');
+      .then((outputPath) => {
+        console.log('2', arg);
+        event.reply('combine-pdf', {
+          success: true,
+          message: `PDF 합치기 성공! 🎉\n저장 위치: ${outputPath}`,
+          pdfPaths: arg.pdfPath,
+          outputPath,
+        });
       })
       .catch((err) => {
-        event.reply('combine-pdf', 'PDF 합치기 실패! 😭');
-        console.error(err);
+        console.error('PDF 합치기 실패:', err);
+        event.reply('combine-pdf', {
+          success: false,
+          message: `PDF 합치기 실패! 😭\n오류: ${err.message}`,
+        });
       });
   },
 );
+
+// 파일 삭제 기능 추가
+ipcMain.on('delete-files', async (event, filePaths: string[]) => {
+  try {
+    for (const filePath of filePaths) {
+      if (fs.existsSync(filePath)) {
+        fs.unlinkSync(filePath);
+      }
+    }
+    event.reply('delete-files', {
+      success: true,
+      message: '파일 삭제 완료! 🗑️',
+    });
+  } catch (error) {
+    event.reply('delete-files', {
+      success: false,
+      message: '파일 삭제 실패! 😭',
+    });
+    console.error('파일 삭제 오류:', error);
+  }
+});
 
 ipcMain.on('write-file', async (event, arg) => {
   console.log("ipcMain.on('read-file')", arg);

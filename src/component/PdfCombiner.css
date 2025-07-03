@@ -140,3 +140,83 @@ input[type='file'] {
     border-bottom: 1px solid lightgray;
   }
 }
+
+/* 모달 스타일 */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+.modal {
+  background: white;
+  color: black;
+  padding: 30px;
+  border-radius: 15px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+  text-align: center;
+  max-width: 400px;
+  width: 90%;
+}
+
+.modal h3 {
+  margin: 0 0 15px 0;
+  color: #333;
+}
+
+.modal p {
+  margin: 0 0 25px 0;
+  color: #666;
+  font-size: 16px;
+}
+
+.modal-buttons {
+  display: flex;
+  gap: 15px;
+  justify-content: center;
+}
+
+.delete-button {
+  background-color: #ff4757;
+  color: white;
+  padding: 12px 20px;
+  border-radius: 8px;
+  border: none;
+  font-size: 14px;
+  cursor: pointer;
+  transition: background-color 0.3s;
+}
+
+.delete-button:hover:not(:disabled) {
+  background-color: #ff3742;
+  transform: scale(1.05);
+}
+
+.delete-button:disabled {
+  background-color: #ccc;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.close-button {
+  background-color: #6c757d;
+  color: white;
+  padding: 12px 20px;
+  border-radius: 8px;
+  border: none;
+  font-size: 14px;
+  cursor: pointer;
+  transition: background-color 0.3s;
+}
+
+.close-button:hover {
+  background-color: #5a6268;
+  transform: scale(1.05);
+}

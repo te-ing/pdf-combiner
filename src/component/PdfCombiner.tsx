@@ -8,6 +8,10 @@ export default function PdfCombiner() {
   const [isSort, setIsSort] = useState<boolean>(true);
   const inputRef = useRef<HTMLInputElement | null>(null);
   const [filename, setFilename] = useState<string>('');
+  const [showSuccessModal, setShowSuccessModal] = useState<boolean>(false);
+  const [successMessage, setSuccessMessage] = useState<string>('');
+  const [selectedPdfPaths, setSelectedPdfPaths] = useState<string[]>([]);
+  const [isDeleting, setIsDeleting] = useState<boolean>(false);
 
   const handleDrop = (
     event: DragEvent<HTMLDivElement> | ChangeEvent<HTMLInputElement>,
@@ -32,11 +36,26 @@ export default function PdfCombiner() {
 
   const combinePdf = () => {
     const pdfPath = pdf.map((v) => v.path);
+    setSelectedPdfPaths(pdfPath);
 
     window.electron.ipcRenderer.sendMessage('combine-pdf', {
       pdfPath,
       filename,
     });
+  };
+
+  const handleDeleteFiles = () => {
+    if (window.confirm('선택한 PDF 파일들을 삭제하시겠습니까?')) {
+      setIsDeleting(true);
+      window.electron.ipcRenderer.sendMessage('delete-files', selectedPdfPaths);
+    }
+  };
+
+  const closeModal = () => {
+    setShowSuccessModal(false);
+    setSuccessMessage('');
+    setSelectedPdfPaths([]);
+    setPdf([]);
   };
 
   const handleFilenameChange = (e: ChangeEvent<HTMLInputElement>) => {
@@ -46,6 +65,41 @@ export default function PdfCombiner() {
 
   useEffect(() => {
     setFilename(window.localStorage.getItem('filename') || '');
+  }, []);
+
+  useEffect(() => {
+    const handleCombinePdfResponse = (response: any) => {
+      if (response.success) {
+        setSuccessMessage(response.message);
+        setShowSuccessModal(true);
+      } else {
+        alert(response.message);
+      }
+    };
+
+    const handleDeleteFilesResponse = (response: any) => {
+      setIsDeleting(false);
+      if (response.success) {
+        alert(response.message);
+        closeModal();
+      } else {
+        alert(response.message);
+      }
+    };
+
+    const unsubscribeCombine = window.electron.ipcRenderer.on(
+      'combine-pdf',
+      handleCombinePdfResponse,
+    );
+    const unsubscribeDelete = window.electron.ipcRenderer.on(
+      'delete-files',
+      handleDeleteFilesResponse,
+    );
+
+    return () => {
+      unsubscribeCombine();
+      unsubscribeDelete();
+    };
   }, []);
 
   return (
@@ -93,6 +147,33 @@ export default function PdfCombiner() {
       <button onClick={combinePdf} type="button">
         합치기
       </button>
+
+      {/* 성공 모달 */}
+      {showSuccessModal && (
+        <div className="modal-overlay">
+          <div className="modal">
+            <h3>🎉 PDF 합치기 완료!</h3>
+            <p>{successMessage}</p>
+            <div className="modal-buttons">
+              <button
+                onClick={handleDeleteFiles}
+                disabled={isDeleting}
+                className="delete-button"
+                type="button"
+              >
+                {isDeleting ? '삭제 중...' : '선택한 파일 삭제'}
+              </button>
+              <button
+                onClick={closeModal}
+                className="close-button"
+                type="button"
+              >
+                닫기
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

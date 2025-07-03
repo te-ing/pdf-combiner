@@ -2,7 +2,11 @@
 /* eslint no-unused-vars: off */
 import { contextBridge, ipcRenderer, IpcRendererEvent } from 'electron';
 
-export type Channels = 'ipc-example' | 'combine-pdf' | 'write-file';
+export type Channels =
+  | 'ipc-example'
+  | 'combine-pdf'
+  | 'write-file'
+  | 'delete-files';
 
 const electronHandler = {
   ipcRenderer: {
